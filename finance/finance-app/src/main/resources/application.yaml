@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: finance-app
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/pfm_finance}
+    username: ${DB_USERNAME:pfm}
+    password: ${DB_PASSWORD:pfm}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.afpr.pfm: INFO
+    org.hibernate.SQL: WARN
