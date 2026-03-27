@@ -6,11 +6,16 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @Slf4j
 @SpringBootApplication
-public class FinanceAppApplication {
+public class Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FinanceAppApplication.class, args);
+		SpringApplication.run(Application.class, args);
 		log.info("FinanceAppApplication started successfully.");
+	}
+
+	// TODO: delete — only here to verify Unit Test are working
+	public int add(int a, int b) {
+		return a + b;
 	}
 
 }
