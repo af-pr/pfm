@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pfm-postgres
+    environment:
+      POSTGRES_DB: pfm_finance
+      POSTGRES_USER: pfm
+      POSTGRES_PASSWORD: pfm
+    ports:
+      - "5432:5432"
