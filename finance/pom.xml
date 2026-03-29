@@ -42,6 +42,29 @@
         </dependencies>
     </dependencyManagement>
 
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.openapitools</groupId>
+                    <artifactId>openapi-generator-maven-plugin</artifactId>
+                    <version>7.1.0</version>
+                    <configuration>
+                        <generatorName>java</generatorName>
+                        <library>feign</library>
+                        <apiPackage>com.afpr.pfm.finance.client.api</apiPackage>
+                        <modelPackage>com.afpr.pfm.finance.client.dto</modelPackage>
+                        <dateLibrary>java8</dateLibrary>
+                        <additionalProperties>
+                            <additionalProperty>hideGenerationTimestamp=true</additionalProperty>
+                            <additionalProperty>useJakartaEe=true</additionalProperty>
+                        </additionalProperties>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
     <modules>
         <module>finance-app</module>
         <module>finance-acceptance-test</module>
