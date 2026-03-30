@@ -21,7 +21,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateCategoryRequest'
+              $ref: '#/components/schemas/CategoryCreateRequest'
       responses:
         '201':
           description: Created
@@ -40,7 +40,7 @@ paths:
 
 components:
   schemas:
-    CreateCategoryRequest:
+    CategoryCreateRequest:
       type: object
       required:
         - name
