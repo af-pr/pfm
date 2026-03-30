@@ -1,4 +1,4 @@
-package com.afpr.pfm.finance.validation;
+package com.afpr.pfm.finance.shared.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -14,8 +14,8 @@ import java.lang.annotation.*;
 @Documented
 public @interface SafeText {
     String message() default "Text contains invalid characters. Only letters, numbers, spaces, hyphens, periods, and commas are allowed.";
-    
+
     Class<?>[] groups() default {};
-    
+
     Class<? extends Payload>[] payload() default {};
 }

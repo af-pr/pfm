@@ -3,7 +3,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 // Constants
-final String SAFE_TEXT_CLASS = 'com.afpr.pfm.finance.validation.SafeText'
+final String SAFE_TEXT_CLASS = 'com.afpr.pfm.finance.shared.validation.SafeText'
 final String SAFE_TEXT_IMPORT = "import ${SAFE_TEXT_CLASS};"
 final String SAFE_TEXT_ANNOTATION = '@SafeText'
 final String PACKAGE_DECL = 'package com.afpr.pfm.finance.client.dto;'
