@@ -24,6 +24,7 @@
         <exec-maven-plugin.version>3.5.0</exec-maven-plugin.version>
         <spring-cloud-openfeign.version>4.3.1</spring-cloud-openfeign.version>
         <datafaker.version>2.0.1</datafaker.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
 
     <dependencyManagement>
@@ -44,6 +45,11 @@
                 <groupId>net.datafaker</groupId>
                 <artifactId>datafaker</artifactId>
                 <version>${datafaker.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
