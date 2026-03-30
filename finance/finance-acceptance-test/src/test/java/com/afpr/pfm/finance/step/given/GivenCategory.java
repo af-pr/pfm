@@ -16,7 +16,7 @@ public class GivenCategory {
 
     @Given("a valid category is declared")
     public void aValidCategoryIsDeclared() {
-        categoryWorld.setCategoryName(new Faker().commerce().department());
+        categoryWorld.setCategoryName(new Faker().color().name());
     }
 
     @Given("a category is created")
