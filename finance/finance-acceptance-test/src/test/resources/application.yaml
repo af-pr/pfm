@@ -1,2 +1,18 @@
 app:
   base-url: http://localhost:8080
+
+category:
+  url: ${app.base-url}
+
+spring:
+  application:
+    name: finance-acceptance-test
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000
+        readTimeout: 10000
+        loggerLevel: FULL
+
