@@ -7,6 +7,8 @@ spring:
     username: ${DB_USERNAME:pfm}
     password: ${DB_PASSWORD:pfm}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 3000
 
   jpa:
     hibernate:

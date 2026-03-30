@@ -50,6 +50,8 @@ components:
           x-safeText: true
           description: Category name
           example: "Basic Expenses"
+          minLength: 1
+          maxLength: 50
 
     CategoryResponse:
       type: object

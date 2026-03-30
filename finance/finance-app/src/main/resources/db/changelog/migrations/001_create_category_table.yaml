@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 000_create_schema
+      author: af-pr
+      changes:
+        - sql:
+            dbms: postgresql
+            splitStatements: false
+            sql: CREATE SCHEMA IF NOT EXISTS finance;
+  - changeSet:
+      id: 001_create_category_table
+      author: af-pr
+      changes:
+        - createTable:
+            tableName: category
+            schemaName: finance
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_category
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_category_name
