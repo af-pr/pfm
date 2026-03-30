@@ -42,6 +42,20 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>2.2.15</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
@@ -62,39 +76,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.github.openfeign</groupId>
-			<artifactId>feign-core</artifactId>
-			<version>13.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.openfeign</groupId>
-			<artifactId>feign-jackson</artifactId>
-			<version>13.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.openfeign</groupId>
-			<artifactId>feign-okhttp</artifactId>
-			<version>13.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.openfeign.form</groupId>
-			<artifactId>feign-form</artifactId>
-			<version>3.8.0</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.annotation</groupId>
-			<artifactId>jakarta.annotation-api</artifactId>
-			<version>2.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.openapitools</groupId>
-			<artifactId>jackson-databind-nullable</artifactId>
-			<version>0.2.6</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.openfeign</groupId>
-			<artifactId>feign-slf4j</artifactId>
-			<version>13.1</version>
+			<groupId>net.datafaker</groupId>
+			<artifactId>datafaker</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -109,8 +93,19 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-						<inputSpec>${project.basedir}/spec/openapi.yaml</inputSpec>
+							<inputSpec>${project.basedir}/spec/openapi.yaml</inputSpec>
 							<output>${project.build.directory}/generated-sources/openapi</output>
+							<generatorName>spring</generatorName>
+							<library>spring-cloud</library>
+							<apiPackage>com.afpr.pfm.finance.client.api</apiPackage>
+							<modelPackage>com.afpr.pfm.finance.client.dto</modelPackage>
+							<configOptions>
+								<useBeanValidation>true</useBeanValidation>
+								<useJakartaEe>true</useJakartaEe>
+								<useSpringBoot3>true</useSpringBoot3>
+								<useTags>true</useTags>
+								<additionalModelTypeAnnotations>@lombok.Builder(toBuilder=true)</additionalModelTypeAnnotations>
+							</configOptions>
 						</configuration>
 					</execution>
 				</executions>

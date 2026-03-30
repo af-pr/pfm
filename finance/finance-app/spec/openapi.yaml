@@ -15,7 +15,7 @@ paths:
       summary: Create a new category
       description: Creates a new category for accounts.
       tags:
-        - Categories
+        - Category
       requestBody:
         required: true
         content:
