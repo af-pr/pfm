@@ -10,7 +10,7 @@ final String PACKAGE_DECL = 'package com.afpr.pfm.finance.client.dto;'
 final String FIELD_INDENT = '  '
 
 // Paths
-final String openApiPath = project.basedir.absolutePath + '/src/main/resources/openapi.yaml'
+final String openApiPath = project.basedir.absolutePath + '/spec/openapi.yaml'
 final String dtoPath = project.build.directory + '/generated-sources/openapi/src/main/java/com/afpr/pfm/finance/client/dto'
 
 // Parse YAML
