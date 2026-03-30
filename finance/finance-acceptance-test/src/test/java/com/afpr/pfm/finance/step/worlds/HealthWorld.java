@@ -1,18 +1,17 @@
-package com.afpr.pfm.finance.step.actuator;
+package com.afpr.pfm.finance.step.worlds;
 
 import com.afpr.pfm.finance.support.actuator.infrastructure.http.dto.HealthResponse;
 import io.cucumber.spring.ScenarioScope;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-@Getter
-@Setter
 @Component
 @ScenarioScope
-public class World {
+public class HealthWorld extends World {
 
-    private ResponseEntity<HealthResponse> response;
+    @SuppressWarnings("unchecked")
+    public ResponseEntity<HealthResponse> getHealthResponse() {
+        return (ResponseEntity<HealthResponse>) getLastResponse();
+    }
 
 }

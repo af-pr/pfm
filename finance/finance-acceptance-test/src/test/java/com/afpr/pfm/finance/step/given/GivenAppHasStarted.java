@@ -1,4 +1,4 @@
-package com.afpr.pfm.finance.step.actuator.given;
+package com.afpr.pfm.finance.step.given;
 
 import io.cucumber.java.en.Given;
 
