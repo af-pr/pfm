@@ -21,11 +21,13 @@ jobs:
       - name: Load runner config
         shell: powershell
         run: |
-          Get-Content "finance/resources/env_config/.env.pre" | ForEach-Object {
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.pre"
+          Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
               echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
+          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
