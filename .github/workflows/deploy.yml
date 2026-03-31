@@ -14,8 +14,14 @@ on:
         options:
           - pre
           - prod
-  repository_dispatch:
-    types: [deploy-to-pre]
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -28,13 +34,8 @@ jobs:
         id: config
         shell: powershell
         run: |
-          if ("${{ github.event_name }}" -eq "repository_dispatch") {
-            $VERSION = "${{ github.event.client_payload.version }}"
-            $ENVIRONMENT = "pre"
-          } else {
-            $VERSION = "${{ github.event.inputs.version }}"
-            $ENVIRONMENT = "${{ github.event.inputs.environment }}"
-          }
+          $VERSION = "${{ inputs.version }}"
+          $ENVIRONMENT = "${{ inputs.environment }}"
           echo "version=$VERSION" >> $env:GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $env:GITHUB_OUTPUT
           Write-Host "Version: $VERSION"
