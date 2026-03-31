@@ -26,54 +26,64 @@ jobs:
 
       - name: Set version and environment
         id: config
+        shell: pwsh
         run: |
-          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            VERSION=${{ github.event.client_payload.version }}
-            ENVIRONMENT=pre
-          else
-            VERSION=${{ github.event.inputs.version }}
-            ENVIRONMENT=${{ github.event.inputs.environment }}
-          fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-          echo "Environment: $ENVIRONMENT"
+          if ("${{ github.event_name }}" -eq "repository_dispatch") {
+            $VERSION = "${{ github.event.client_payload.version }}"
+            $ENVIRONMENT = "pre"
+          } else {
+            $VERSION = "${{ github.event.inputs.version }}"
+            $ENVIRONMENT = "${{ github.event.inputs.environment }}"
+          }
+          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $env:GITHUB_OUTPUT
+          Write-Host "Version: $VERSION"
+          Write-Host "Environment: $ENVIRONMENT"
 
       - name: Verify JAR exists
+        shell: pwsh
         run: |
-          JAR_PATH="finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar"
-          if [ ! -f "$JAR_PATH" ]; then
-            echo "ERROR: JAR not found at $JAR_PATH"
+          $JAR_PATH = "finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar"
+          if (-not (Test-Path $JAR_PATH)) {
+            Write-Error "JAR not found at $JAR_PATH"
             exit 1
-          fi
-          echo "JAR found: $JAR_PATH"
+          }
+          Write-Host "JAR found: $JAR_PATH"
 
       - name: Build Docker image
+        shell: pwsh
         run: |
-          docker build -t pfm-finance:${{ steps.config.outputs.version }} \
-            -f finance/finance-app/Dockerfile \
-            --build-arg JAR_FILE=finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar \
+          docker build -t "pfm-finance:${{ steps.config.outputs.version }}" `
+            -f finance/finance-app/Dockerfile `
+            --build-arg "JAR_FILE=finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar" `
             .
-          echo "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
+          Write-Host "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
 
       - name: Deploy with docker-compose
+        shell: pwsh
         run: |
-          source finance/resources/env_config/.env.${{ steps.config.outputs.environment }}
-          export APP_VERSION=${{ steps.config.outputs.version }}
+          $env_file = "finance/resources/env_config/.env.${{ steps.config.outputs.environment }}"
+          Get-Content $env_file | ForEach-Object {
+            if ($_ -match '^([^=]+)=(.*)$') {
+              Set-Item -Path "env:$($matches[1])" -Value $matches[2]
+            }
+          }
+          $env:APP_VERSION = "${{ steps.config.outputs.version }}"
           docker-compose -f finance/resources/docker-compose.yaml up -d
-          sleep 5
+          Start-Sleep -Seconds 5
           docker-compose -f finance/resources/docker-compose.yaml logs
 
       - name: Clean up old images
+        shell: pwsh
         run: |
-          CURRENT_VERSION=${{ steps.config.outputs.version }}
-          echo "Current version: $CURRENT_VERSION"
-          OLD_IMAGES=$(docker images pfm-finance --format "{{.Tag}}" | grep -v "^$CURRENT_VERSION$" || true)
-          if [ ! -z "$OLD_IMAGES" ]; then
-            echo "Removing old images: $OLD_IMAGES"
-            for tag in $OLD_IMAGES; do
-              docker rmi "pfm-finance:$tag" || true
-            done
-          else
-            echo "No old images to remove"
-          fi
+          $CURRENT_VERSION = "${{ steps.config.outputs.version }}"
+          Write-Host "Current version: $CURRENT_VERSION"
+          $OLD_IMAGES = docker images pfm-finance --format "{{.Tag}}" | Where-Object { $_ -ne $CURRENT_VERSION }
+          if ($OLD_IMAGES) {
+            Write-Host "Removing old images: $OLD_IMAGES"
+            foreach ($tag in $OLD_IMAGES) {
+              docker rmi "pfm-finance:$tag" -ErrorAction SilentlyContinue | Out-Null
+            }
+          } else {
+            Write-Host "No old images to remove"
+          }
