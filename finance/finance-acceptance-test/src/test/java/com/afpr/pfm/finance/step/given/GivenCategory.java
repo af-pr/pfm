@@ -8,6 +8,8 @@ import io.cucumber.java.en.Given;
 import lombok.AllArgsConstructor;
 import net.datafaker.Faker;
 
+import java.util.stream.IntStream;
+
 @AllArgsConstructor
 public class GivenCategory {
 
@@ -16,17 +18,28 @@ public class GivenCategory {
 
     @Given("a valid category is declared")
     public void aValidCategoryIsDeclared() {
-        categoryWorld.setCategoryName(new Faker().color().name());
+        categoryWorld.setCategoryName(new Faker().commerce().department());
     }
 
     @Given("a category is created")
     public void aCategoryIsCreated() {
         aValidCategoryIsDeclared();
-        categoryWorld.setLastResponse(categoryRequester.create(categoryWorld.getCategoryName()));
+        var response = categoryRequester.create(categoryWorld.getCategoryName());
+        categoryWorld.setLastResponse(response);
+        categoryWorld.setCategoryId(response.getBody().getId());
     }
 
     @And("another category with the same name")
     public void anotherCategoryWithTheSameName() {
         // No implementation needed: the category name is already stored in categoryWorld
+    }
+
+    @Given("several categories are created")
+    public void severalCategoriesAreCreated() {
+        var faker = new Faker();
+        var createdCategories = IntStream.range(0, faker.number().numberBetween(3, 6))
+                .mapToObj(i -> categoryRequester.create(faker.unique().fetchFromYaml("commerce.department")).getBody())
+                .toList();
+        categoryWorld.setCreatedCategories(createdCategories);
     }
 }
