@@ -36,7 +36,7 @@ jobs:
 
       - name: Build with Maven
         shell: powershell
-        run: mvn clean install -DskipTests -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
+        run: .\finance\mvnw.cmd clean install -DskipTests -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
 
       - name: Create releases directory and copy JAR
         shell: powershell
