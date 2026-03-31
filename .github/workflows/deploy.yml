@@ -79,7 +79,7 @@ jobs:
       - name: Deploy with docker-compose
         shell: powershell
         run: |
-          $env_file = "finance/resources/env_config/.env.${{ steps.config.outputs.environment }}"
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ steps.config.outputs.environment }}"
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^=]+)=(.*)$') {
               Set-Item -Path "env:$($matches[1])" -Value $matches[2]
