@@ -26,7 +26,7 @@ jobs:
 
       - name: Set version and environment
         id: config
-        shell: pwsh
+        shell: powershell
         run: |
           if ("${{ github.event_name }}" -eq "repository_dispatch") {
             $VERSION = "${{ github.event.client_payload.version }}"
@@ -41,7 +41,7 @@ jobs:
           Write-Host "Environment: $ENVIRONMENT"
 
       - name: Verify JAR exists
-        shell: pwsh
+        shell: powershell
         run: |
           $JAR_PATH = "finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar"
           if (-not (Test-Path $JAR_PATH)) {
@@ -51,7 +51,7 @@ jobs:
           Write-Host "JAR found: $JAR_PATH"
 
       - name: Build Docker image
-        shell: pwsh
+        shell: powershell
         run: |
           docker build -t "pfm-finance:${{ steps.config.outputs.version }}" `
             -f finance/finance-app/Dockerfile `
@@ -60,7 +60,7 @@ jobs:
           Write-Host "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
 
       - name: Deploy with docker-compose
-        shell: pwsh
+        shell: powershell
         run: |
           $env_file = "finance/resources/env_config/.env.${{ steps.config.outputs.environment }}"
           Get-Content $env_file | ForEach-Object {
@@ -74,7 +74,7 @@ jobs:
           docker-compose -f finance/resources/docker-compose.yaml logs
 
       - name: Clean up old images
-        shell: pwsh
+        shell: powershell
         run: |
           $CURRENT_VERSION = "${{ steps.config.outputs.version }}"
           Write-Host "Current version: $CURRENT_VERSION"
@@ -82,7 +82,7 @@ jobs:
           if ($OLD_IMAGES) {
             Write-Host "Removing old images: $OLD_IMAGES"
             foreach ($tag in $OLD_IMAGES) {
-              docker rmi "pfm-finance:$tag" -ErrorAction SilentlyContinue | Out-Null
+              docker rmi "pfm-finance:$tag" 2>$null
             }
           } else {
             Write-Host "No old images to remove"
