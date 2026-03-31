@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: self-hosted
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +38,7 @@ jobs:
 
       - name: Build with Maven
         shell: powershell
-        run: .\finance\mvnw.cmd clean install -DskipTests -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
+        run: .\finance\mvnw.cmd clean install -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
 
       - name: Create releases directory and copy JAR
         shell: powershell
@@ -58,8 +60,9 @@ jobs:
           }
           Write-Host "JAR ready at: $JAR_PATH"
 
-      - name: Trigger Deploy to PRE
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          event-type: deploy-to-pre
-          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    with:
+      version: ${{ needs.build.outputs.version }}
+      environment: pre
