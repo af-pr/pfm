@@ -30,6 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Load runner config
+        shell: powershell
+        run: |
+          Get-Content "finance/resources/env_config/.env.${{ inputs.environment }}" | ForEach-Object {
+            if ($_ -match '^([^#][^=]*)=(.*)$') {
+              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+            }
+          }
+
       - name: Set version and environment
         id: config
         shell: powershell
@@ -44,7 +53,7 @@ jobs:
       - name: Verify JAR exists
         shell: powershell
         run: |
-          $JAR_PATH = "finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar"
+          $JAR_PATH = "$env:RELEASES_DIR\${{ steps.config.outputs.version }}\finance-app-${{ steps.config.outputs.version }}.jar"
           if (-not (Test-Path $JAR_PATH)) {
             Write-Error "JAR not found at $JAR_PATH"
             exit 1
@@ -56,7 +65,7 @@ jobs:
         run: |
           docker build -t "pfm-finance:${{ steps.config.outputs.version }}" `
             -f finance/finance-app/Dockerfile `
-            --build-arg "JAR_FILE=finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar" `
+            --build-arg "JAR_FILE=$env:RELEASES_DIR\${{ steps.config.outputs.version }}\finance-app-${{ steps.config.outputs.version }}.jar" `
             .
           Write-Host "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
 
