@@ -65,11 +65,16 @@ jobs:
       - name: Build Docker image
         shell: powershell
         run: |
-          docker build -t "pfm-finance:${{ steps.config.outputs.version }}" `
+          $VERSION = "${{ steps.config.outputs.version }}"
+          $JAR_SOURCE = "$env:RELEASES_DIR\$VERSION\finance-app-$VERSION.jar"
+          $JAR_DEST = "finance\finance-app\finance-app-$VERSION.jar"
+          Copy-Item $JAR_SOURCE $JAR_DEST
+          docker build -t "pfm-finance:$VERSION" `
             -f finance/finance-app/Dockerfile `
-            --build-arg "JAR_FILE=$env:RELEASES_DIR\${{ steps.config.outputs.version }}\finance-app-${{ steps.config.outputs.version }}.jar" `
+            --build-arg "JAR_FILE=finance/finance-app/finance-app-$VERSION.jar" `
             .
-          Write-Host "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
+          Remove-Item $JAR_DEST -ErrorAction SilentlyContinue
+          Write-Host "Docker image built: pfm-finance:$VERSION"
 
       - name: Deploy with docker-compose
         shell: powershell
