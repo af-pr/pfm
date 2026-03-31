@@ -97,7 +97,7 @@
                             <arguments>
                                 <argument>compose</argument>
                                 <argument>-f</argument>
-                                <argument>${project.parent.basedir}/resources/docker-compose.yaml</argument>
+                                <argument>${project.parent.basedir}/resources/docker-compose-local.yaml</argument>
                                 <argument>up</argument>
                                 <argument>-d</argument>
                                 <argument>--wait</argument>
@@ -115,7 +115,7 @@
                             <arguments>
                                 <argument>compose</argument>
                                 <argument>-f</argument>
-                                <argument>${project.parent.basedir}/resources/docker-compose.yaml</argument>
+                                <argument>${project.parent.basedir}/resources/docker-compose-local.yaml</argument>
                                 <argument>down</argument>
                             </arguments>
                         </configuration>
