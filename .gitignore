@@ -9,11 +9,11 @@ target/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Build artifacts
+finance/releases/
+
 # Secrets / Environment
-.env
-.env.dev
-.env.pre
-.env.prod
+finance/resources/env_config/
 
 # IDE - IntelliJ IDEA
 .idea/

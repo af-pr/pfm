@@ -1,0 +1,79 @@
+name: Deploy Finance App
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version to deploy'
+        required: true
+        type: string
+      environment:
+        description: 'Environment (pre or prod)'
+        required: true
+        type: choice
+        options:
+          - pre
+          - prod
+  repository_dispatch:
+    types: [deploy-to-pre]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version and environment
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            VERSION=${{ github.event.client_payload.version }}
+            ENVIRONMENT=pre
+          else
+            VERSION=${{ github.event.inputs.version }}
+            ENVIRONMENT=${{ github.event.inputs.environment }}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "Environment: $ENVIRONMENT"
+
+      - name: Verify JAR exists
+        run: |
+          JAR_PATH="finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "ERROR: JAR not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "JAR found: $JAR_PATH"
+
+      - name: Build Docker image
+        run: |
+          docker build -t pfm-finance:${{ steps.config.outputs.version }} \
+            -f finance/finance-app/Dockerfile \
+            --build-arg JAR_FILE=finance/releases/${{ steps.config.outputs.version }}/finance-app-${{ steps.config.outputs.version }}.jar \
+            .
+          echo "Docker image built: pfm-finance:${{ steps.config.outputs.version }}"
+
+      - name: Deploy with docker-compose
+        run: |
+          source finance/resources/env_config/.env.${{ steps.config.outputs.environment }}
+          export APP_VERSION=${{ steps.config.outputs.version }}
+          docker-compose -f finance/resources/docker-compose.yaml up -d
+          sleep 5
+          docker-compose -f finance/resources/docker-compose.yaml logs
+
+      - name: Clean up old images
+        run: |
+          CURRENT_VERSION=${{ steps.config.outputs.version }}
+          echo "Current version: $CURRENT_VERSION"
+          OLD_IMAGES=$(docker images pfm-finance --format "{{.Tag}}" | grep -v "^$CURRENT_VERSION$" || true)
+          if [ ! -z "$OLD_IMAGES" ]; then
+            echo "Removing old images: $OLD_IMAGES"
+            for tag in $OLD_IMAGES; do
+              docker rmi "pfm-finance:$tag" || true
+            done
+          else
+            echo "No old images to remove"
+          fi
