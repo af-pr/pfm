@@ -18,7 +18,7 @@ Aplicación para gestión de finanzas personales.
 
 ```bash
 # 1. Levantar la base de datos
-docker compose -f finance/resources/docker-compose.yaml up -d
+docker compose -f finance/resources/docker-compose-local.yaml up -d
 
 # 2. Arrancar la aplicación
 ./mvnw spring-boot:run -pl finance-app
