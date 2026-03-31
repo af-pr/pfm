@@ -25,7 +25,7 @@ jobs:
 
       - name: Extract version from commit
         id: version
-        shell: pwsh
+        shell: powershell
         run: |
           $VERSION = & git describe --tags --always --abbrev=7 2>$null
           if (-not $VERSION) {
@@ -35,17 +35,21 @@ jobs:
           echo "Version: $VERSION"
 
       - name: Build with Maven
+        shell: powershell
         run: mvn clean install -DskipTests -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
 
       - name: Create releases directory and copy JAR
-        shell: pwsh
+        shell: powershell
         run: |
-          New-Item -ItemType Directory -Force -Path "finance/releases/${{ steps.version.outputs.version }}" | Out-Null
-          Copy-Item "finance/finance-app/target/finance-app-${{ steps.version.outputs.version }}.jar" "finance/releases/${{ steps.version.outputs.version }}/"
-          Get-ChildItem "finance/releases/${{ steps.version.outputs.version }}/"
+          $VERSION = "${{ steps.version.outputs.version }}"
+          $JAR_SOURCE = Get-ChildItem "finance/finance-app/target/finance-app-*.jar" | Where-Object { $_.Name -notlike "*-sources.jar" } | Select-Object -First 1
+          if (-not $JAR_SOURCE) { Write-Error "No JAR found in target directory"; exit 1 }
+          New-Item -ItemType Directory -Force -Path "finance/releases/$VERSION" | Out-Null
+          Copy-Item $JAR_SOURCE.FullName "finance/releases/$VERSION/finance-app-$VERSION.jar"
+          Get-ChildItem "finance/releases/$VERSION/"
 
       - name: Verify JAR created
-        shell: pwsh
+        shell: powershell
         run: |
           $JAR_PATH = "finance/releases/${{ steps.version.outputs.version }}/finance-app-${{ steps.version.outputs.version }}.jar"
           if (-not (Test-Path $JAR_PATH)) {
