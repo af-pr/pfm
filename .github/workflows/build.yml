@@ -1,0 +1,55 @@
+name: Build Finance App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'finance/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Extract version from commit
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always --abbrev=7 2>/dev/null || git rev-parse --short HEAD)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Build with Maven
+        run: mvn clean install -DskipTests -pl finance-app,finance-acceptance-test -am -f finance/pom.xml
+
+      - name: Create releases directory and copy JAR
+        run: |
+          mkdir -p finance/releases/${{ steps.version.outputs.version }}
+          cp finance/finance-app/target/finance-app-${{ steps.version.outputs.version }}.jar finance/releases/${{ steps.version.outputs.version }}/
+          ls -la finance/releases/${{ steps.version.outputs.version }}/
+
+      - name: Verify JAR created
+        run: |
+          JAR_PATH="finance/releases/${{ steps.version.outputs.version }}/finance-app-${{ steps.version.outputs.version }}.jar"
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "ERROR: JAR not found at $JAR_PATH"
+            exit 1
+          fi
+          echo "JAR ready at: $JAR_PATH"
+
+      - name: Trigger Deploy to PRE
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          event-type: deploy-to-pre
+          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
