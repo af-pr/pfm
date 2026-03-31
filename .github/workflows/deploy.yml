@@ -50,6 +50,7 @@ jobs:
               }
             }
           }
+          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Extract DB_URL and set derived variables
         shell: powershell
