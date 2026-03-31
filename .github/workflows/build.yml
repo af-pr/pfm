@@ -18,6 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Load runner config
+        shell: powershell
+        run: |
+          Get-Content "finance/resources/env_config/.env.pre" | ForEach-Object {
+            if ($_ -match '^([^#][^=]*)=(.*)$') {
+              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+            }
+          }
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -46,14 +55,14 @@ jobs:
           $VERSION = "${{ steps.version.outputs.version }}"
           $JAR_SOURCE = Get-ChildItem "finance/finance-app/target/finance-app-*.jar" | Where-Object { $_.Name -notlike "*-sources.jar" } | Select-Object -First 1
           if (-not $JAR_SOURCE) { Write-Error "No JAR found in target directory"; exit 1 }
-          New-Item -ItemType Directory -Force -Path "finance/releases/$VERSION" | Out-Null
-          Copy-Item $JAR_SOURCE.FullName "finance/releases/$VERSION/finance-app-$VERSION.jar"
-          Get-ChildItem "finance/releases/$VERSION/"
+          New-Item -ItemType Directory -Force -Path "$env:RELEASES_DIR\$VERSION" | Out-Null
+          Copy-Item $JAR_SOURCE.FullName "$env:RELEASES_DIR\$VERSION\finance-app-$VERSION.jar"
+          Get-ChildItem "$env:RELEASES_DIR\$VERSION\"
 
       - name: Verify JAR created
         shell: powershell
         run: |
-          $JAR_PATH = "finance/releases/${{ steps.version.outputs.version }}/finance-app-${{ steps.version.outputs.version }}.jar"
+          $JAR_PATH = "$env:RELEASES_DIR\${{ steps.version.outputs.version }}\finance-app-${{ steps.version.outputs.version }}.jar"
           if (-not (Test-Path $JAR_PATH)) {
             Write-Error "JAR not found at $JAR_PATH"
             exit 1
