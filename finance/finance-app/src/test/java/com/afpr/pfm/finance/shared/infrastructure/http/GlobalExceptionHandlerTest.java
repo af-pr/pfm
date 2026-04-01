@@ -1,0 +1,26 @@
+package com.afpr.pfm.finance.shared.infrastructure.http;
+
+import com.afpr.pfm.finance.shared.exception.ConflictException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ExtendWith(MockitoExtension.class)
+class GlobalExceptionHandlerTest {
+
+    @InjectMocks
+    private GlobalExceptionHandler underTest;
+
+    @Test
+    void handleConflict_returns409WithNoBody() {
+        ResponseEntity<Void> result = underTest.handleConflict(new ConflictException("already exists"));
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(result.getBody()).isNull();
+    }
+}

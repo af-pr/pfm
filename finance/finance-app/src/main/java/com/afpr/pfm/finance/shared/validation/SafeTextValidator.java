@@ -25,14 +25,10 @@ public class SafeTextValidator implements ConstraintValidator<SafeText, String> 
             return true;
         }
 
-        if (!SAFE_TEXT_PATTERN.matcher(value).matches()) {
-            return false;
-        }
-
         if (value.trim().isEmpty()) {
-            return false;
+            return true;
         }
 
-        return true;
+        return SAFE_TEXT_PATTERN.matcher(value).matches();
     }
 }
