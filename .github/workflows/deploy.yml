@@ -58,15 +58,14 @@ jobs:
           if ($env:DB_URL -match $regex) {
             $dbHost = $matches[1]
             $dbPort = $matches[2]
-            $dbName = $matches[3]
           } else {
             Write-Error "DB_URL must match pattern jdbc:postgresql://host:port/dbname."
             exit 1
           }
-          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
+          # DB_NAME siempre viene del .env, nunca de la URL
           echo "DB_HOST=$dbHost" >> $env:GITHUB_ENV
           echo "DB_PORT_FROM_URL=$dbPort" >> $env:GITHUB_ENV
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
@@ -140,14 +139,8 @@ jobs:
               echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
-          $dbUri = [System.Uri]$env:DB_URL
-          $dbName = $dbUri.AbsolutePath.TrimStart('/')
-          if (-not $dbName) {
-            Write-Error "DB_URL must include the database name: $env:DB_URL"
-            exit 1
-          }
-          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          # DB_NAME siempre viene del .env, nunca de la URL
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
