@@ -55,23 +55,18 @@ jobs:
       - name: Extract DB_URL and set derived variables
         shell: powershell
         run: |
-          $rawUrl = $env:DB_URL -replace '^jdbc:', ''
-          $dbUri = [System.Uri]$rawUrl
-          $dbName = $dbUri.AbsolutePath.TrimStart('/')
-          if (-not $dbName) {
-            Write-Error "DB_URL must include the database name: $env:DB_URL"
+          $regex = 'jdbc:postgresql://([^:/]+):(\d+)/(\w+)' # host, port, dbname
+          if ($env:DB_URL -match $regex) {
+            $dbHost = $matches[1]
+            $dbPort = $matches[2]
+          } else {
+            Write-Error "DB_URL must match pattern jdbc:postgresql://host:port/dbname."
             exit 1
           }
-          $dbHost = $dbUri.Host
-          $dbPort = $dbUri.Port
-          if ($dbPort -lt 1) {
-            Write-Error "DB_URL must include an explicit port: $env:DB_URL"
-            exit 1
-          }
-          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
+          # DB_NAME siempre viene del .env, nunca de la URL
           echo "DB_HOST=$dbHost" >> $env:GITHUB_ENV
           echo "DB_PORT_FROM_URL=$dbPort" >> $env:GITHUB_ENV
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
@@ -99,6 +94,12 @@ jobs:
       - name: Run Liquibase migration (one-off)
         shell: powershell
         run: |
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
+          Get-Content $env_file | ForEach-Object {
+            if ($_ -match '^(DB_USERNAME|DB_PASSWORD)=(.*)$') {
+              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
+            }
+          }
           $JAR_PATH = "$env:RELEASES_DIR\${{ inputs.version }}\finance-app-${{ inputs.version }}.jar"
           $migrationDbUrl = "jdbc:postgresql://$env:DB_HOST`:$env:DB_PORT_FROM_URL/$env:DB_NAME"
           $args = @(
@@ -139,14 +140,8 @@ jobs:
               echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
-          $dbUri = [System.Uri]$env:DB_URL
-          $dbName = $dbUri.AbsolutePath.TrimStart('/')
-          if (-not $dbName) {
-            Write-Error "DB_URL must include the database name: $env:DB_URL"
-            exit 1
-          }
-          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          # DB_NAME siempre viene del .env, nunca de la URL
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
