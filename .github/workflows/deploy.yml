@@ -110,16 +110,10 @@ jobs:
             "--DB_PASSWORD=$env:DB_PASSWORD",
             "--APP_PORT=0"
           )
-          $proc = Start-Process -FilePath "java" -ArgumentList $args -NoNewWindow -PassThru
-          $finished = $proc.WaitForExit(180000)
-          if (-not $finished) {
-            Stop-Process -Id $proc.Id -Force
-            Write-Error "Migration process timed out"
-            exit 1
-          }
-          if ($proc.ExitCode -ne 0) {
-            Write-Error "Migration failed with exit code $($proc.ExitCode)"
-            exit $proc.ExitCode
+          & java @args
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Migration failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
           }
           Write-Host "Migration completed"
 
