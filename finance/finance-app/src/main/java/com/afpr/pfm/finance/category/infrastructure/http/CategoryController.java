@@ -3,13 +3,14 @@ package com.afpr.pfm.finance.category.infrastructure.http;
 import com.afpr.pfm.finance.category.application.CategoryCreateService;
 import com.afpr.pfm.finance.category.application.CategoryFinderService;
 import com.afpr.pfm.finance.category.infrastructure.http.mapper.CategoryControllerMapper;
+import com.afpr.pfm.finance.category.application.CategoryUpdaterService;
 import com.afpr.pfm.finance.client.api.CategoryApi;
 import com.afpr.pfm.finance.client.dto.CategoryCreateRequestDto;
 import com.afpr.pfm.finance.client.dto.CategoryEditionRequestDto;
 import com.afpr.pfm.finance.client.dto.CategoryResponseDto;
 import com.afpr.pfm.finance.client.dto.PagedCategoryResponseDto;
+import com.afpr.pfm.finance.shared.exception.NotValidException;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.UUID;
@@ -25,6 +26,7 @@ public class CategoryController implements CategoryApi {
 
     private final CategoryCreateService categoryCreateService;
     private final CategoryFinderService categoryFinderService;
+    private final CategoryUpdaterService categoryUpdaterService;
     private final CategoryControllerMapper mapper;
 
     @Override
@@ -48,8 +50,12 @@ public class CategoryController implements CategoryApi {
     }
 
     @Override
-    public ResponseEntity<CategoryResponseDto> updateCategory(UUID id,
-            @Valid CategoryEditionRequestDto categoryEditionRequestDto) {
-        throw new UnsupportedOperationException("Unimplemented method 'updateCategory'");
+    public ResponseEntity<CategoryResponseDto> updateCategory(final UUID id, final CategoryEditionRequestDto categoryEditionRequestDto) {
+        if (!id.equals(categoryEditionRequestDto.getId())) {
+            throw new NotValidException("Path id and body id must match");
+        }
+        var category = mapper.toDomain(categoryEditionRequestDto);
+        var updated = categoryUpdaterService.update(category);
+        return ResponseEntity.ok(mapper.toResponse(updated));
     }
 }

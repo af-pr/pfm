@@ -5,12 +5,14 @@ import com.afpr.pfm.finance.category.domain.CategoryMother;
 import com.afpr.pfm.finance.client.dto.CategoryCreateRequestDto;
 import com.afpr.pfm.finance.client.dto.CategoryResponseDto;
 import com.afpr.pfm.finance.client.dto.PagedCategoryResponseDto;
+import com.afpr.pfm.finance.client.dto.CategoryEditionRequestDto;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +27,18 @@ class CategoryControllerMapperTest {
         Category domain = mapper.toDomain(request);
 
         assertThat(domain.getName()).isEqualTo(category.getName());
+    }
+
+    @Test
+    void toDomain_CategoryEditionRequestDtoToCategory() {
+        var id = UUID.randomUUID();
+        var name = CategoryMother.randomName();
+        var request = CategoryEditionRequestDto.builder().id(id).name(name).build();
+
+        Category domain = mapper.toDomain(request);
+
+        assertThat(domain.getId()).isEqualTo(id);
+        assertThat(domain.getName()).isEqualTo(name);
     }
 
     @Test

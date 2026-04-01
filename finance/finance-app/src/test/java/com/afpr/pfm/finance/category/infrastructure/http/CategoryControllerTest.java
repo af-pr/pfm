@@ -2,12 +2,15 @@ package com.afpr.pfm.finance.category.infrastructure.http;
 
 import com.afpr.pfm.finance.category.application.CategoryCreateService;
 import com.afpr.pfm.finance.category.application.CategoryFinderService;
+import com.afpr.pfm.finance.category.application.CategoryUpdaterService;
 import com.afpr.pfm.finance.category.domain.Category;
 import com.afpr.pfm.finance.category.domain.CategoryMother;
 import com.afpr.pfm.finance.category.infrastructure.http.mapper.CategoryControllerMapper;
 import com.afpr.pfm.finance.client.dto.CategoryCreateRequestDto;
+import com.afpr.pfm.finance.client.dto.CategoryEditionRequestDto;
 import com.afpr.pfm.finance.client.dto.CategoryResponseDto;
 import com.afpr.pfm.finance.client.dto.PagedCategoryResponseDto;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +41,9 @@ class CategoryControllerTest {
 
     @Mock
     private CategoryControllerMapper mapper;
+
+    @Mock
+    private CategoryUpdaterService categoryUpdaterService;
 
     @InjectMocks
     private CategoryController sut;
@@ -127,6 +134,36 @@ class CategoryControllerTest {
         assertThat(result.getBody()).isSameAs(pagedResponse);
         verify(categoryFinderService).findAll(pageable);
         verify(mapper).toPagedResponse(page);
+    }
+
+    @Test
+    void updateCategory_success() {
+        var domain = CategoryMother.random();
+        var request = CategoryEditionRequestDto.builder().id(domain.getId()).name(domain.getName()).build();
+        var updated = domain.toBuilder().name("UPDATED").build();
+        var response = CategoryResponseDto.builder().id(updated.getId()).name(updated.getName()).build();
+        when(mapper.toDomain(request)).thenReturn(domain);
+        when(categoryUpdaterService.update(domain)).thenReturn(updated);
+        when(mapper.toResponse(updated)).thenReturn(response);
+
+        ResponseEntity<CategoryResponseDto> result = sut.updateCategory(domain.getId(), request);
+
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isSameAs(response);
+        verify(mapper).toDomain(request);
+        verify(categoryUpdaterService).update(domain);
+        verify(mapper).toResponse(updated);
+    }
+
+    @Test
+    void updateCategory_idMismatch_throwsNotValidException() {
+        UUID id = UUID.randomUUID();
+        UUID otherId = UUID.randomUUID();
+        var request = CategoryEditionRequestDto.builder().id(otherId).name(CategoryMother.randomName()).build();
+
+        assertThatThrownBy(() -> 
+            sut.updateCategory(id, request)
+        ).isInstanceOf(com.afpr.pfm.finance.shared.exception.NotValidException.class);
     }
 }
 
