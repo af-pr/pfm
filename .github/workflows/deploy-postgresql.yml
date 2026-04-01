@@ -25,9 +25,11 @@ jobs:
           $technicalVars = @('ENVIRONMENT','DB_URL','DB_NAME','DB_PORT','APP_PORT','NETWORK_NAME')
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
-              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
-              if ($technicalVars -contains $matches[1]) {
-                echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+              $var = $matches[1]
+              $val = $matches[2]
+              Set-Item -Path "Env:$var" -Value $val
+              if ($technicalVars -contains $var) {
+                echo "$var=$val" >> $env:GITHUB_ENV
               }
             }
           }
