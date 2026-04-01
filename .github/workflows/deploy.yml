@@ -8,12 +8,12 @@ on:
         required: true
         type: string
       environment:
-        description: 'Environment (pre or prod)'
+        description: 'Environment (pre or pro)'
         required: true
         type: choice
         options:
           - pre
-          - prod
+          - pro
   workflow_call:
     inputs:
       version:
@@ -86,9 +86,9 @@ jobs:
             }
           }
           $env:APP_VERSION = "${{ steps.config.outputs.version }}"
-          docker-compose -f finance/resources/docker-compose.yaml up -d
+          docker-compose -p pfm-finance -f finance/resources/docker-compose.yaml up -d
           Start-Sleep -Seconds 5
-          docker-compose -f finance/resources/docker-compose.yaml logs
+          docker-compose -p pfm-finance -f finance/resources/docker-compose.yaml logs
 
       - name: Clean up old images
         shell: powershell

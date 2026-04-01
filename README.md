@@ -83,16 +83,17 @@ OpenAPI spec (`spec/openapi.yaml`) is defined before coding. Controllers impleme
 
 ## Environment Variables
 
-| Variable      | Default                                        | Description         |
-|---------------|------------------------------------------------|---------------------|
-| `DB_URL`      | `jdbc:postgresql://localhost:5432/pfm_finance` | Datasource URL      |
-| `DB_USERNAME` | `pfm`                                          | Database user       |
-| `DB_PASSWORD` | `pfm`                                          | Database password   |
-| `SERVER_PORT` | `8080`                                         | HTTP port           |
+| Variable      | Default                                              | Description         |
+|---------------|------------------------------------------------------|---------------------|
+| `DB_URL`      | `jdbc:postgresql://postgres:5432/pfm_finance`        | Full JDBC URL (host, port, db name) |
+| `DB_PORT`     | `5432`                                               | PostgreSQL port (container mapping) |
+| `DB_USERNAME` | `pfm`                                                | Database user       |
+| `DB_PASSWORD` | `pfm`                                                | Database password   |
+| `SERVER_PORT` | `8080`                                               | HTTP port           |
 
 ## CI/CD — GitHub Actions with Self-Hosted Runner
 
-The project uses **GitHub Actions** with a **self-hosted runner** on your local machine to build, test, and deploy to PRE/PROD without consuming GitHub Actions minutes.
+The project uses **GitHub Actions** with a **self-hosted runner** on your local machine to build, test, and deploy to PRE/PRO without consuming GitHub Actions minutes.
 
 ### Prerequisites
 
@@ -112,17 +113,19 @@ setx PFMREPO "C:\path\to\pfm\repository"
 
 Then **restart any terminal or IDE** for the variable to be available.
 
+
 **2. Configure environment-specific variables:**
 
-Create `.env.pre` and `.env.prod` in `finance/resources/env_config/` (excluded from git via `.gitignore`):
 
-```powershell
+Create `.env.pre` and `.env.pro` in `finance/resources/env_config/` (excluded from git via `.gitignore`). Example:
+
+```env
 # Example .env.pre
-ENVIRONMENT=pre
-DB_NAME=pfm_test
+ENVIRONMENT=PRE
+DB_URL=jdbc:postgresql://postgres:5432/pfm_test
+DB_PORT=5432
 DB_USERNAME=pfm
 DB_PASSWORD=your_secure_password
-DB_PORT=5432
 APP_PORT=8080
 ```
 
@@ -135,4 +138,4 @@ APP_PORT=8080
 
 **Manual trigger:**
 - Go to GitHub Actions → `Deploy Finance App` → `Run workflow`
-- Select `version` and `environment` (pre or prod)
+- Select `version` and `environment` (pre or pro)

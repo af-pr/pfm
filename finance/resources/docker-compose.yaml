@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: pfm-postgres-${ENVIRONMENT:?ENVIRONMENT variable is required}
+    container_name: pfm-finance-postgres-${ENVIRONMENT:?ENVIRONMENT variable is required}
     environment:
       POSTGRES_DB: ${DB_NAME:-pfm_finance}
       POSTGRES_USER: ${DB_USERNAME:-pfm}
@@ -22,7 +22,7 @@ services:
     image: pfm-finance:${APP_VERSION:?APP_VERSION variable is required}
     container_name: pfm-finance-app-${ENVIRONMENT:?ENVIRONMENT variable is required}
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-pfm_finance}
+      DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME:-pfm}
       DB_PASSWORD: ${DB_PASSWORD:-pfm}
       SERVER_PORT: 8080
