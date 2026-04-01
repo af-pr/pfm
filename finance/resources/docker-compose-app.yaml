@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  finance-app:
+    image: pfm-finance:${APP_VERSION:?APP_VERSION variable is required}
+    container_name: pfm-finance-app-${ENVIRONMENT:?ENVIRONMENT variable is required}
+    environment:
+      DB_URL: ${APP_DB_URL:?APP_DB_URL variable is required}
+      DB_USERNAME: ${DB_USERNAME:-pfm}
+      DB_PASSWORD: ${DB_PASSWORD:-pfm}
+      SERVER_PORT: 8080
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finance-net
+
+networks:
+  finance-net:
+    name: ${NETWORK_NAME:?NETWORK_NAME variable is required}

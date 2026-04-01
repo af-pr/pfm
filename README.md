@@ -83,13 +83,16 @@ OpenAPI spec (`spec/openapi.yaml`) is defined before coding. Controllers impleme
 
 ## Environment Variables
 
-| Variable      | Default                                              | Description         |
-|---------------|------------------------------------------------------|---------------------|
-| `DB_URL`      | `jdbc:postgresql://postgres:5432/pfm_finance`        | Full JDBC URL (host, port, db name) |
-| `DB_PORT`     | `5432`                                               | PostgreSQL port (container mapping) |
-| `DB_USERNAME` | `pfm`                                                | Database user       |
-| `DB_PASSWORD` | `pfm`                                                | Database password   |
-| `SERVER_PORT` | `8080`                                               | HTTP port           |
+| Variable      | Default                                              | Description                                                    |
+|---------------|------------------------------------------------------|----------------------------------------------------------------|
+| `DB_URL`      | no default value but required                        | Full JDBC URL (host, port, db name)                            |
+| `DB_NAME`     | no default value but required                        | Database name (must match the name in `DB_URL`)                |
+| `DB_PORT`     | `5432`                                               | PostgreSQL port (must match the port in `DB_URL`)              |
+| `DB_USERNAME` | `pfm`                                                | Database user                                                  |
+| `DB_PASSWORD` | `pfm`                                                | Database password                                              |
+| `SERVER_PORT` | `8080`                                               | HTTP port                                                      |
+| `NETWORK_NAME`| no default value but required                        | Docker Compose network name (must be unique for environment)   |
+| `ENVIRONMENT` | no default value but required                        | Environment name (eg. pre, pro)                                |
 
 ## CI/CD — GitHub Actions with Self-Hosted Runner
 
