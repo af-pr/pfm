@@ -1,15 +1,20 @@
 package com.afpr.pfm.finance.category.infrastructure.persistence;
 
 import com.afpr.pfm.finance.category.domain.Category;
+import com.afpr.pfm.finance.category.domain.CategoryMother;
 import com.afpr.pfm.finance.category.infrastructure.persistence.entity.CategoryEntity;
 import com.afpr.pfm.finance.category.infrastructure.persistence.mapper.CategoryRepositoryImplMapper;
-import com.afpr.pfm.finance.category.domain.CategoryMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +31,7 @@ class CategoryRepositoryImplTest {
     private CategoryRepositoryImplMapper mapper;
 
     @InjectMocks
-    private CategoryRepositoryImpl underTest;
+    private CategoryRepositoryImpl sut;
 
     @Test
     void save_mapsToEntityPersistsAndMapsToDomain() {
@@ -38,7 +43,7 @@ class CategoryRepositoryImplTest {
         when(jpaRepository.save(entity)).thenReturn(savedEntity);
         when(mapper.toDomain(savedEntity)).thenReturn(savedCategory);
 
-        Category result = underTest.save(category);
+        Category result = sut.save(category);
 
         assertThat(result).isEqualTo(savedCategory);
         verify(mapper).toEntity(category);
@@ -47,26 +52,65 @@ class CategoryRepositoryImplTest {
     }
 
     @Test
-    void existsByName_returnsTrueWhenNameExists() {
+    void existsByName_nameExists() {
         String categoryName = CategoryMother.random().getName();
-
         when(jpaRepository.existsByName(categoryName)).thenReturn(true);
 
-        boolean result = underTest.existsByName(categoryName);
+        boolean result = sut.existsByName(categoryName);
 
         assertThat(result).isTrue();
         verify(jpaRepository).existsByName(categoryName);
     }
 
     @Test
-    void existsByName_returnsFalseWhenNameDoesNotExist() {
+    void existsByName_nameDoesNotExist() {
         String categoryName = CategoryMother.random().getName();
-
         when(jpaRepository.existsByName(categoryName)).thenReturn(false);
 
-        boolean result = underTest.existsByName(categoryName);
+        boolean result = sut.existsByName(categoryName);
 
         assertThat(result).isFalse();
         verify(jpaRepository).existsByName(categoryName);
+    }
+
+    @Test
+    void findById_categoryFound() {
+        Category category = CategoryMother.random();
+        CategoryEntity entity = CategoryEntity.builder().id(category.getId()).name(category.getName()).build();
+        when(jpaRepository.findById(category.getId())).thenReturn(Optional.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(category);
+
+        Optional<Category> result = sut.findById(category.getId());
+
+        assertThat(result).contains(category);
+        verify(jpaRepository).findById(category.getId());
+        verify(mapper).toDomain(entity);
+    }
+
+    @Test
+    void findById_categoryNotFound() {
+        UUID id = UUID.randomUUID();
+        when(jpaRepository.findById(id)).thenReturn(Optional.empty());
+
+        Optional<Category> result = sut.findById(id);
+
+        assertThat(result).isEmpty();
+        verify(jpaRepository).findById(id);
+    }
+
+    @Test
+    void findAll_returnsMappedPage() {
+        var pageable = PageRequest.of(0, 5);
+        Category category = CategoryMother.random();
+        CategoryEntity entity = CategoryEntity.builder().id(category.getId()).name(category.getName()).build();
+        Page<CategoryEntity> entityPage = new PageImpl<CategoryEntity>(List.of(entity), pageable, 1L);
+        when(jpaRepository.findAll(pageable)).thenReturn(entityPage);
+        when(mapper.toDomain(entity)).thenReturn(category);
+
+        Page<Category> result = sut.findAll(pageable);
+
+        assertThat(result.getContent()).containsExactly(category);
+        assertThat(result.getTotalElements()).isEqualTo(1L);
+        verify(jpaRepository).findAll(pageable);
     }
 }

@@ -1,8 +1,9 @@
 package com.afpr.pfm.finance.shared.validation;
 
+import java.util.regex.Pattern;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Pattern;
 
 /**
  * Constraint validator for the @SafeText annotation.
@@ -25,14 +26,10 @@ public class SafeTextValidator implements ConstraintValidator<SafeText, String> 
             return true;
         }
 
-        if (!SAFE_TEXT_PATTERN.matcher(value).matches()) {
-            return false;
-        }
-
         if (value.trim().isEmpty()) {
-            return false;
+            return true;
         }
 
-        return true;
+        return SAFE_TEXT_PATTERN.matcher(value).matches();
     }
 }

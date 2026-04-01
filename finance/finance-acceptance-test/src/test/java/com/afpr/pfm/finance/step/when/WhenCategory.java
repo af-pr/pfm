@@ -14,6 +14,16 @@ public class WhenCategory {
 
     @When("admin requests the category creation")
     public void adminRequestsCategoryCreation() {
-        world.setLastResponse(requester.create(world.getCategoryName()));
+        world.setLastResponse(requester.create(world.getCategory()));
+    }
+
+    @When("admin looks for the category")
+    public void adminLooksForTheCategory() {
+        world.setLastResponse(requester.getById(world.getCategoryId()));
+    }
+
+    @When("admin looks for the category list")
+    public void adminLooksForTheCategoryList() {
+        world.setLastResponse(requester.getAll(0, 100));
     }
 }
