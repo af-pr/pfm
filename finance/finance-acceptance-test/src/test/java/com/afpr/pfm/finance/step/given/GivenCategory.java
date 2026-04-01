@@ -1,5 +1,7 @@
 package com.afpr.pfm.finance.step.given;
 
+import java.util.stream.IntStream;
+
 import com.afpr.pfm.finance.step.worlds.CategoryWorld;
 import com.afpr.pfm.finance.support.category.application.CategoryMother;
 import com.afpr.pfm.finance.support.category.application.CategoryRequester;
@@ -8,8 +10,6 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import lombok.AllArgsConstructor;
 import net.datafaker.Faker;
-
-import java.util.stream.IntStream;
 
 @AllArgsConstructor
 public class GivenCategory {
