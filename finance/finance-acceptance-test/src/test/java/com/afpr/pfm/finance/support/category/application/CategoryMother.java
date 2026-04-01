@@ -1,20 +1,30 @@
 package com.afpr.pfm.finance.support.category.application;
 
-import com.afpr.pfm.finance.client.dto.CategoryCreateRequest;
+import com.afpr.pfm.finance.category.domain.Category;
+
 import net.datafaker.Faker;
+
+import java.util.UUID;
 
 public class CategoryMother {
     private static final Faker FAKER = new Faker();
 
-    public static CategoryCreateRequest newCategory() {
-        return CategoryCreateRequest.builder()
+    public static Category newCategory() {
+        return Category.builder()
                 .name(generateName())
                 .build();
     }
 
-    public static CategoryCreateRequest withName(String name) {
-        return CategoryCreateRequest.builder()
+    public static Category withName(String name) {
+        return Category.builder()
                 .name(name)
+                .build();
+    }
+
+    public static Category withId(UUID id) {
+        return Category.builder()
+                .id(id)
+                .name(generateName())
                 .build();
     }
 

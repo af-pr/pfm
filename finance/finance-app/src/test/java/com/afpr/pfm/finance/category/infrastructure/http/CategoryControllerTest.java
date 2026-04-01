@@ -5,9 +5,9 @@ import com.afpr.pfm.finance.category.application.CategoryFinderService;
 import com.afpr.pfm.finance.category.domain.Category;
 import com.afpr.pfm.finance.category.domain.CategoryMother;
 import com.afpr.pfm.finance.category.infrastructure.http.mapper.CategoryControllerMapper;
-import com.afpr.pfm.finance.client.dto.CategoryCreateRequest;
-import com.afpr.pfm.finance.client.dto.CategoryResponse;
-import com.afpr.pfm.finance.client.dto.PagedCategoryResponse;
+import com.afpr.pfm.finance.client.dto.CategoryCreateRequestDto;
+import com.afpr.pfm.finance.client.dto.CategoryResponseDto;
+import com.afpr.pfm.finance.client.dto.PagedCategoryResponseDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,14 +44,14 @@ class CategoryControllerTest {
     @Test
     void createCategory() {
         Category category = CategoryMother.withoutId();
-        CategoryCreateRequest request = CategoryCreateRequest.builder().name(category.getName()).build();
+        CategoryCreateRequestDto request = CategoryCreateRequestDto.builder().name(category.getName()).build();
         Category createdCategory = CategoryMother.random();
-        CategoryResponse response = CategoryResponse.builder().id(createdCategory.getId()).name(createdCategory.getName()).build();
+        CategoryResponseDto response = CategoryResponseDto.builder().id(createdCategory.getId()).name(createdCategory.getName()).build();
         when(mapper.toDomain(request)).thenReturn(category);
         when(categoryCreateService.create(category)).thenReturn(createdCategory);
         when(mapper.toResponse(createdCategory)).thenReturn(response);
 
-        ResponseEntity<CategoryResponse> result = sut.createCategory(request);
+        ResponseEntity<CategoryResponseDto> result = sut.createCategory(request);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(result.getBody()).isSameAs(response);
@@ -63,11 +63,11 @@ class CategoryControllerTest {
     @Test
     void getCategoryById_categoryFound() {
         Category category = CategoryMother.random();
-        CategoryResponse response = CategoryResponse.builder().id(category.getId()).name(category.getName()).build();
+        CategoryResponseDto response = CategoryResponseDto.builder().id(category.getId()).name(category.getName()).build();
         when(categoryFinderService.findById(category.getId())).thenReturn(Optional.of(category));
         when(mapper.toResponse(category)).thenReturn(response);
 
-        ResponseEntity<CategoryResponse> result = sut.getCategoryById(category.getId());
+        ResponseEntity<CategoryResponseDto> result = sut.getCategoryById(category.getId());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(response);
@@ -78,7 +78,7 @@ class CategoryControllerTest {
         UUID id = UUID.randomUUID();
         when(categoryFinderService.findById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<CategoryResponse> result = sut.getCategoryById(id);
+        ResponseEntity<CategoryResponseDto> result = sut.getCategoryById(id);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(result.getBody()).isNull();
@@ -89,7 +89,7 @@ class CategoryControllerTest {
         var pageable = PageRequest.of(0, 10);
         var categories = List.of(CategoryMother.random(), CategoryMother.random());
         var page = new PageImpl<Category>(categories, pageable, categories.size());
-        var pagedResponse = PagedCategoryResponse.builder()
+        var pagedResponse = PagedCategoryResponseDto.builder()
                 .content(List.of())
                 .totalElements((long) categories.size())
                 .totalPages(1)
@@ -99,7 +99,7 @@ class CategoryControllerTest {
         when(categoryFinderService.findAll(pageable)).thenReturn(page);
         when(mapper.toPagedResponse(page)).thenReturn(pagedResponse);
 
-        ResponseEntity<PagedCategoryResponse> result = sut.getCategories(0, 10);
+        ResponseEntity<PagedCategoryResponseDto> result = sut.getCategories(0, 10);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(pagedResponse);
@@ -111,7 +111,7 @@ class CategoryControllerTest {
     void getCategories_emptyPage() {
         var pageable = PageRequest.of(0, 10);
         var page = new PageImpl<Category>(List.of(), pageable, 0);
-        var pagedResponse = PagedCategoryResponse.builder()
+        var pagedResponse = PagedCategoryResponseDto.builder()
                 .content(List.of())
                 .totalElements(0L)
                 .totalPages(0)
@@ -121,7 +121,7 @@ class CategoryControllerTest {
         when(categoryFinderService.findAll(pageable)).thenReturn(page);
         when(mapper.toPagedResponse(page)).thenReturn(pagedResponse);
 
-        ResponseEntity<PagedCategoryResponse> result = sut.getCategories(0, 10);
+        ResponseEntity<PagedCategoryResponseDto> result = sut.getCategories(0, 10);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(pagedResponse);

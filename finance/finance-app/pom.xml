@@ -108,8 +108,10 @@
 								<useJakartaEe>true</useJakartaEe>
 								<useSpringBoot3>true</useSpringBoot3>
 								<useTags>true</useTags>
+								<removeEnumValuePrefix>false</removeEnumValuePrefix>
 								<additionalModelTypeAnnotations>@lombok.Builder(toBuilder=true)</additionalModelTypeAnnotations>
 							</configOptions>
+							<modelNameSuffix>Dto</modelNameSuffix>
 						</configuration>
 					</execution>
 				</executions>
