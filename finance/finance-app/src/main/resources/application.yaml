@@ -18,6 +18,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_schema: finance
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml

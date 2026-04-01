@@ -39,7 +39,7 @@ class CategoryControllerTest {
     private CategoryControllerMapper mapper;
 
     @InjectMocks
-    private CategoryController underTest;
+    private CategoryController sut;
 
     @Test
     void createCategory() {
@@ -51,7 +51,7 @@ class CategoryControllerTest {
         when(categoryCreateService.create(category)).thenReturn(createdCategory);
         when(mapper.toResponse(createdCategory)).thenReturn(response);
 
-        ResponseEntity<CategoryResponse> result = underTest.createCategory(request);
+        ResponseEntity<CategoryResponse> result = sut.createCategory(request);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(result.getBody()).isSameAs(response);
@@ -67,7 +67,7 @@ class CategoryControllerTest {
         when(categoryFinderService.findById(category.getId())).thenReturn(Optional.of(category));
         when(mapper.toResponse(category)).thenReturn(response);
 
-        ResponseEntity<CategoryResponse> result = underTest.getCategoryById(category.getId());
+        ResponseEntity<CategoryResponse> result = sut.getCategoryById(category.getId());
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(response);
@@ -78,7 +78,7 @@ class CategoryControllerTest {
         UUID id = UUID.randomUUID();
         when(categoryFinderService.findById(id)).thenReturn(Optional.empty());
 
-        ResponseEntity<CategoryResponse> result = underTest.getCategoryById(id);
+        ResponseEntity<CategoryResponse> result = sut.getCategoryById(id);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(result.getBody()).isNull();
@@ -99,7 +99,7 @@ class CategoryControllerTest {
         when(categoryFinderService.findAll(pageable)).thenReturn(page);
         when(mapper.toPagedResponse(page)).thenReturn(pagedResponse);
 
-        ResponseEntity<PagedCategoryResponse> result = underTest.getCategories(0, 10);
+        ResponseEntity<PagedCategoryResponse> result = sut.getCategories(0, 10);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(pagedResponse);
@@ -121,7 +121,7 @@ class CategoryControllerTest {
         when(categoryFinderService.findAll(pageable)).thenReturn(page);
         when(mapper.toPagedResponse(page)).thenReturn(pagedResponse);
 
-        ResponseEntity<PagedCategoryResponse> result = underTest.getCategories(0, 10);
+        ResponseEntity<PagedCategoryResponse> result = sut.getCategories(0, 10);
 
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(result.getBody()).isSameAs(pagedResponse);

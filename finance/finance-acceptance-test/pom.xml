@@ -132,8 +132,8 @@
                     <useTestClasspath>true</useTestClasspath>
                     <arguments>
                         <argument>--server.port=${app.port}</argument>
-                        <argument>--spring.liquibase.enabled=false</argument>
-                        <argument>--spring.jpa.hibernate.ddl-auto=create-drop</argument>
+                        <argument>--spring.liquibase.enabled=true</argument>
+                        <argument>--spring.jpa.hibernate.ddl-auto=validate</argument>
                         <argument>--logging.file.name=${project.build.directory}/app.log</argument>
                     </arguments>
                 </configuration>

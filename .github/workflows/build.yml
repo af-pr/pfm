@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 'fix/*'
     paths:
       - 'finance/**'
       - '.github/workflows/build.yml'
@@ -21,12 +22,6 @@ jobs:
       - name: Load runner config
         shell: powershell
         run: |
-          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.pre"
-          Get-Content $env_file | ForEach-Object {
-            if ($_ -match '^([^#][^=]*)=(.*)$') {
-              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
-            }
-          }
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Set up JDK 21

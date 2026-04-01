@@ -1,8 +1,9 @@
 package com.afpr.pfm.finance.shared.validation;
 
+import java.util.regex.Pattern;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Pattern;
 
 /**
  * Constraint validator for the @SafeText annotation.

@@ -31,7 +31,7 @@ class CategoryRepositoryImplTest {
     private CategoryRepositoryImplMapper mapper;
 
     @InjectMocks
-    private CategoryRepositoryImpl underTest;
+    private CategoryRepositoryImpl sut;
 
     @Test
     void save_mapsToEntityPersistsAndMapsToDomain() {
@@ -43,7 +43,7 @@ class CategoryRepositoryImplTest {
         when(jpaRepository.save(entity)).thenReturn(savedEntity);
         when(mapper.toDomain(savedEntity)).thenReturn(savedCategory);
 
-        Category result = underTest.save(category);
+        Category result = sut.save(category);
 
         assertThat(result).isEqualTo(savedCategory);
         verify(mapper).toEntity(category);
@@ -56,7 +56,7 @@ class CategoryRepositoryImplTest {
         String categoryName = CategoryMother.random().getName();
         when(jpaRepository.existsByName(categoryName)).thenReturn(true);
 
-        boolean result = underTest.existsByName(categoryName);
+        boolean result = sut.existsByName(categoryName);
 
         assertThat(result).isTrue();
         verify(jpaRepository).existsByName(categoryName);
@@ -67,7 +67,7 @@ class CategoryRepositoryImplTest {
         String categoryName = CategoryMother.random().getName();
         when(jpaRepository.existsByName(categoryName)).thenReturn(false);
 
-        boolean result = underTest.existsByName(categoryName);
+        boolean result = sut.existsByName(categoryName);
 
         assertThat(result).isFalse();
         verify(jpaRepository).existsByName(categoryName);
@@ -80,7 +80,7 @@ class CategoryRepositoryImplTest {
         when(jpaRepository.findById(category.getId())).thenReturn(Optional.of(entity));
         when(mapper.toDomain(entity)).thenReturn(category);
 
-        Optional<Category> result = underTest.findById(category.getId());
+        Optional<Category> result = sut.findById(category.getId());
 
         assertThat(result).contains(category);
         verify(jpaRepository).findById(category.getId());
@@ -92,7 +92,7 @@ class CategoryRepositoryImplTest {
         UUID id = UUID.randomUUID();
         when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
-        Optional<Category> result = underTest.findById(id);
+        Optional<Category> result = sut.findById(id);
 
         assertThat(result).isEmpty();
         verify(jpaRepository).findById(id);
@@ -107,7 +107,7 @@ class CategoryRepositoryImplTest {
         when(jpaRepository.findAll(pageable)).thenReturn(entityPage);
         when(mapper.toDomain(entity)).thenReturn(category);
 
-        Page<Category> result = underTest.findAll(pageable);
+        Page<Category> result = sut.findAll(pageable);
 
         assertThat(result.getContent()).containsExactly(category);
         assertThat(result.getTotalElements()).isEqualTo(1L);
