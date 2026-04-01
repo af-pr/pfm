@@ -26,4 +26,4 @@ public class DatabaseTransactionHook {
             jdbcTemplate.execute("TRUNCATE TABLE finance." + table + " CASCADE");
         }
     }
-
+}
