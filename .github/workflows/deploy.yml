@@ -41,10 +41,13 @@ jobs:
         shell: powershell
         run: |
           $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
+          $technicalVars = @('ENVIRONMENT','DB_URL','DB_NAME','DB_PORT','APP_PORT','NETWORK_NAME')
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
               Set-Item -Path "env:$($matches[1])" -Value $matches[2]
-              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+              if ($technicalVars -contains $matches[1]) {
+                echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+              }
             }
           }
 
