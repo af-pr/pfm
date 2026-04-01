@@ -55,7 +55,8 @@ jobs:
       - name: Extract DB_URL and set derived variables
         shell: powershell
         run: |
-          $dbUri = [System.Uri]$env:DB_URL
+          $rawUrl = $env:DB_URL -replace '^jdbc:', ''
+          $dbUri = [System.Uri]$rawUrl
           $dbName = $dbUri.AbsolutePath.TrimStart('/')
           if (-not $dbName) {
             Write-Error "DB_URL must include the database name: $env:DB_URL"
