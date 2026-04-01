@@ -24,6 +24,7 @@ jobs:
           $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
+              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
               echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
@@ -33,6 +34,9 @@ jobs:
             Write-Error "DB_URL must include the database name: $env:DB_URL"
             exit 1
           }
+          Set-Item -Path Env:DB_NAME -Value $dbName
+          Set-Item -Path Env:COMPOSE_PROJECT_NAME -Value "pfm-finance-${{ inputs.environment }}"
+          Set-Item -Path Env:NETWORK_NAME -Value "pfm-finance-${{ inputs.environment }}-net"
           echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
