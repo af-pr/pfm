@@ -94,6 +94,12 @@ jobs:
       - name: Run Liquibase migration (one-off)
         shell: powershell
         run: |
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
+          Get-Content $env_file | ForEach-Object {
+            if ($_ -match '^(DB_USERNAME|DB_PASSWORD)=(.*)$') {
+              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
+            }
+          }
           $JAR_PATH = "$env:RELEASES_DIR\${{ inputs.version }}\finance-app-${{ inputs.version }}.jar"
           $migrationDbUrl = "jdbc:postgresql://$env:DB_HOST`:$env:DB_PORT_FROM_URL/$env:DB_NAME"
           $args = @(
