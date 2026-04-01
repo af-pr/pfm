@@ -24,13 +24,108 @@ on:
         type: string
 
 jobs:
-  deploy:
+  migrate-db:
     runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Load runner config
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+
+      - name: Load .env variables into environment
+        shell: powershell
+        run: |
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
+          Get-Content $env_file | ForEach-Object {
+            if ($_ -match '^([^#][^=]*)=(.*)$') {
+              Set-Item -Path "env:$($matches[1])" -Value $matches[2]
+              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
+            }
+          }
+
+      - name: Extract DB_URL and set derived variables
+        shell: powershell
+        run: |
+          $dbUri = [System.Uri]$env:DB_URL
+          $dbName = $dbUri.AbsolutePath.TrimStart('/')
+          if (-not $dbName) {
+            Write-Error "DB_URL must include the database name: $env:DB_URL"
+            exit 1
+          }
+          $dbHost = $dbUri.Host
+          $dbPort = $dbUri.Port
+          if ($dbPort -lt 1) {
+            Write-Error "DB_URL must include an explicit port: $env:DB_URL"
+            exit 1
+          }
+          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
+          echo "DB_HOST=$dbHost" >> $env:GITHUB_ENV
+          echo "DB_PORT_FROM_URL=$dbPort" >> $env:GITHUB_ENV
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
+          echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
+          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
+
+      - name: Verify PostgreSQL container is running
+        shell: powershell
+        run: |
+          $containerName = "pfm-finance-postgres-$env:ENVIRONMENT"
+          $status = docker inspect --format='{{.State.Status}}' $containerName 2>$null
+          if ($LASTEXITCODE -ne 0 -or $status -ne 'running') {
+            Write-Error "PostgreSQL container '$containerName' is not running. Run the 'Deploy PostgreSQL Infra' workflow first."
+            exit 1
+          }
+
+      - name: Verify artifact JAR exists
+        shell: powershell
+        run: |
+          $JAR_PATH = "$env:RELEASES_DIR\${{ inputs.version }}\finance-app-${{ inputs.version }}.jar"
+          if (-not (Test-Path $JAR_PATH)) {
+            Write-Error "JAR not found at $JAR_PATH"
+            exit 1
+          }
+          Write-Host "JAR found: $JAR_PATH"
+
+      - name: Run Liquibase migration (one-off)
+        shell: powershell
+        run: |
+          $JAR_PATH = "$env:RELEASES_DIR\${{ inputs.version }}\finance-app-${{ inputs.version }}.jar"
+          $migrationDbUrl = "jdbc:postgresql://$env:DB_HOST`:$env:DB_PORT_FROM_URL/$env:DB_NAME"
+          $args = @(
+            "-Dspring.main.web-application-type=none",
+            "-Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration",
+            "-jar", $JAR_PATH,
+            "--DB_URL=$migrationDbUrl",
+            "--DB_USERNAME=$env:DB_USERNAME",
+            "--DB_PASSWORD=$env:DB_PASSWORD",
+            "--APP_PORT=0"
+          )
+          $proc = Start-Process -FilePath "java" -ArgumentList $args -NoNewWindow -PassThru
+          $finished = $proc.WaitForExit(180000)
+          if (-not $finished) {
+            Stop-Process -Id $proc.Id -Force
+            Write-Error "Migration process timed out"
+            exit 1
+          }
+          if ($proc.ExitCode -ne 0) {
+            Write-Error "Migration failed with exit code $($proc.ExitCode)"
+            exit $proc.ExitCode
+          }
+          Write-Host "Migration completed"
+
+  deploy-app:
+    runs-on: self-hosted
+    needs: migrate-db
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load deploy config
         shell: powershell
         run: |
           $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
@@ -39,33 +134,22 @@ jobs:
               echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
-          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
-
-      - name: Set version and environment
-        id: config
-        shell: powershell
-        run: |
-          $VERSION = "${{ inputs.version }}"
-          $ENVIRONMENT = "${{ inputs.environment }}"
-          echo "version=$VERSION" >> $env:GITHUB_OUTPUT
-          echo "environment=$ENVIRONMENT" >> $env:GITHUB_OUTPUT
-          Write-Host "Version: $VERSION"
-          Write-Host "Environment: $ENVIRONMENT"
-
-      - name: Verify JAR exists
-        shell: powershell
-        run: |
-          $JAR_PATH = "$env:RELEASES_DIR\${{ steps.config.outputs.version }}\finance-app-${{ steps.config.outputs.version }}.jar"
-          if (-not (Test-Path $JAR_PATH)) {
-            Write-Error "JAR not found at $JAR_PATH"
+          $dbUri = [System.Uri]$env:DB_URL
+          $dbName = $dbUri.AbsolutePath.TrimStart('/')
+          if (-not $dbName) {
+            Write-Error "DB_URL must include the database name: $env:DB_URL"
             exit 1
           }
-          Write-Host "JAR found: $JAR_PATH"
+          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
+          echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
+          echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
+          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Build Docker image
         shell: powershell
         run: |
-          $VERSION = "${{ steps.config.outputs.version }}"
+          $VERSION = "${{ inputs.version }}"
           $JAR_SOURCE = "$env:RELEASES_DIR\$VERSION\finance-app-$VERSION.jar"
           $JAR_DEST = "finance\finance-app\finance-app-$VERSION.jar"
           Copy-Item $JAR_SOURCE $JAR_DEST
@@ -79,21 +163,15 @@ jobs:
       - name: Deploy with docker-compose
         shell: powershell
         run: |
-          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ steps.config.outputs.environment }}"
-          Get-Content $env_file | ForEach-Object {
-            if ($_ -match '^([^=]+)=(.*)$') {
-              Set-Item -Path "env:$($matches[1])" -Value $matches[2]
-            }
-          }
-          $env:APP_VERSION = "${{ steps.config.outputs.version }}"
-          docker-compose -p pfm-finance -f finance/resources/docker-compose.yaml up -d
+          $env:APP_VERSION = "${{ inputs.version }}"
+          docker-compose -p $env:COMPOSE_PROJECT_NAME -f finance/resources/docker-compose-app.yaml up -d
           Start-Sleep -Seconds 5
-          docker-compose -p pfm-finance -f finance/resources/docker-compose.yaml logs
+          docker-compose -p $env:COMPOSE_PROJECT_NAME -f finance/resources/docker-compose-app.yaml logs finance-app
 
       - name: Clean up old images
         shell: powershell
         run: |
-          $CURRENT_VERSION = "${{ steps.config.outputs.version }}"
+          $CURRENT_VERSION = "${{ inputs.version }}"
           Write-Host "Current version: $CURRENT_VERSION"
           $OLD_IMAGES = docker images pfm-finance --format "{{.Tag}}" | Where-Object { $_ -ne $CURRENT_VERSION }
           if ($OLD_IMAGES) {

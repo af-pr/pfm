@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pfm-finance-postgres-${ENVIRONMENT:?ENVIRONMENT variable is required}
+    environment:
+      POSTGRES_DB: ${DB_NAME:?DB_NAME variable is required}
+      POSTGRES_USER: ${DB_USERNAME:-pfm}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pfm}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-pfm} -d ${DB_NAME:?DB_NAME variable is required}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - pfm-postgres-data:/var/lib/postgresql/data
+    networks:
+      finance-net:
+        aliases:
+          - postgres
+
+volumes:
+  pfm-postgres-data:
+
+networks:
+  finance-net:
+    name: ${NETWORK_NAME:?NETWORK_NAME variable is required}

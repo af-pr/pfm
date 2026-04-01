@@ -5,13 +5,13 @@ services:
     image: postgres:16-alpine
     container_name: pfm-finance-postgres-${ENVIRONMENT:?ENVIRONMENT variable is required}
     environment:
-      POSTGRES_DB: ${DB_NAME:-pfm_finance}
+      POSTGRES_DB: ${DB_NAME:?DB_NAME variable is required}
       POSTGRES_USER: ${DB_USERNAME:-pfm}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-pfm}
     ports:
       - "${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-pfm} -d ${DB_NAME:-pfm_finance}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-pfm} -d ${DB_NAME:?DB_NAME variable is required}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     image: pfm-finance:${APP_VERSION:?APP_VERSION variable is required}
     container_name: pfm-finance-app-${ENVIRONMENT:?ENVIRONMENT variable is required}
     environment:
-      DB_URL: ${DB_URL}
+      DB_URL: ${APP_DB_URL:?APP_DB_URL variable is required}
       DB_USERNAME: ${DB_USERNAME:-pfm}
       DB_PASSWORD: ${DB_PASSWORD:-pfm}
       SERVER_PORT: 8080
