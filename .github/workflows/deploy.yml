@@ -41,32 +41,32 @@ jobs:
         shell: powershell
         run: |
           $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
-          $technicalVars = @('ENVIRONMENT','DB_URL','DB_NAME','DB_PORT','APP_PORT','NETWORK_NAME')
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
               Set-Item -Path "env:$($matches[1])" -Value $matches[2]
-              if ($technicalVars -contains $matches[1]) {
-                echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
-              }
+              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
-          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Extract DB_URL and set derived variables
         shell: powershell
         run: |
-          $regex = 'jdbc:postgresql://([^:/]+):(\d+)/(\w+)' # host, port, dbname
-          if ($env:DB_URL -match $regex) {
-            $dbHost = $matches[1]
-            $dbPort = $matches[2]
-          } else {
-            Write-Error "DB_URL must match pattern jdbc:postgresql://host:port/dbname."
+          $dbUri = [System.Uri]$env:DB_URL
+          $dbName = $dbUri.AbsolutePath.TrimStart('/')
+          if (-not $dbName) {
+            Write-Error "DB_URL must include the database name: $env:DB_URL"
             exit 1
           }
-          # DB_NAME siempre viene del .env, nunca de la URL
+          $dbHost = $dbUri.Host
+          $dbPort = $dbUri.Port
+          if ($dbPort -lt 1) {
+            Write-Error "DB_URL must include an explicit port: $env:DB_URL"
+            exit 1
+          }
+          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
           echo "DB_HOST=$dbHost" >> $env:GITHUB_ENV
           echo "DB_PORT_FROM_URL=$dbPort" >> $env:GITHUB_ENV
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
+          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$dbName" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
           echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
@@ -90,61 +90,6 @@ jobs:
             exit 1
           }
           Write-Host "JAR found: $JAR_PATH"
-
-      - name: Run Liquibase migration (one-off)
-        shell: powershell
-        run: |
-          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
-          Get-Content $env_file | ForEach-Object {
-            if ($_ -match '^(DB_USERNAME|DB_PASSWORD)=(.*)$') {
-              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
-            }
-          }
-          $JAR_PATH = "$env:RELEASES_DIR\${{ inputs.version }}\finance-app-${{ inputs.version }}.jar"
-          $migrationDbUrl = "jdbc:postgresql://$env:DB_HOST`:$env:DB_PORT_FROM_URL/$env:DB_NAME"
-          $args = @(
-            "-Dspring.main.web-application-type=none",
-            "-Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration",
-            "-jar", $JAR_PATH,
-            "--DB_URL=$migrationDbUrl",
-            "--DB_USERNAME=$env:DB_USERNAME",
-            "--DB_PASSWORD=$env:DB_PASSWORD",
-            "--APP_PORT=0"
-          )
-          $proc = Start-Process -FilePath "java" -ArgumentList $args -NoNewWindow -PassThru
-          $finished = $proc.WaitForExit(180000)
-          if (-not $finished) {
-            Stop-Process -Id $proc.Id -Force
-            Write-Error "Migration process timed out"
-            exit 1
-          }
-          if ($proc.ExitCode -ne 0) {
-            Write-Error "Migration failed with exit code $($proc.ExitCode)"
-            exit $proc.ExitCode
-          }
-          Write-Host "Migration completed"
-
-  deploy-app:
-    runs-on: self-hosted
-    needs: migrate-db
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Load deploy config
-        shell: powershell
-        run: |
-          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
-          Get-Content $env_file | ForEach-Object {
-            if ($_ -match '^([^#][^=]*)=(.*)$') {
-              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
-            }
-          }
-          # DB_NAME siempre viene del .env, nunca de la URL
-          echo "APP_DB_URL=jdbc:postgresql://postgres:5432/$env:DB_NAME" >> $env:GITHUB_ENV
-          echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
-          echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
-          echo "RELEASES_DIR=$env:PFMREPO\finance\releases" >> $env:GITHUB_ENV
 
       - name: Run Liquibase migration (one-off)
         shell: powershell

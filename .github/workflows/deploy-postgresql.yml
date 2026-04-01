@@ -22,17 +22,18 @@ jobs:
         shell: powershell
         run: |
           $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
-          $technicalVars = @('ENVIRONMENT','DB_URL','DB_NAME','DB_PORT','APP_PORT','NETWORK_NAME')
           Get-Content $env_file | ForEach-Object {
             if ($_ -match '^([^#][^=]*)=(.*)$') {
-              Set-Item -Path "Env:$($matches[1])" -Value $matches[2]
-              if ($technicalVars -contains $matches[1]) {
-                echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
-              }
+              echo "$($matches[1])=$($matches[2])" >> $env:GITHUB_ENV
             }
           }
-          Set-Item -Path Env:COMPOSE_PROJECT_NAME -Value "pfm-finance-${{ inputs.environment }}"
-          Set-Item -Path Env:NETWORK_NAME -Value "pfm-finance-${{ inputs.environment }}-net"
+          $dbUri = [System.Uri]$env:DB_URL
+          $dbName = $dbUri.AbsolutePath.TrimStart('/')
+          if (-not $dbName) {
+            Write-Error "DB_URL must include the database name: $env:DB_URL"
+            exit 1
+          }
+          echo "DB_NAME=$dbName" >> $env:GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
           echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
 
