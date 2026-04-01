@@ -7,6 +7,12 @@ category:
 spring:
   application:
     name: finance-acceptance-test
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pfm_finance
+    username: pfm
+    password: pfm
+    driver-class-name: org.postgresql.Driver
 
 feign:
   client:

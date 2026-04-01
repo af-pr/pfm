@@ -1,5 +1,6 @@
 package com.afpr.pfm.finance.step.worlds;
 
+import com.afpr.pfm.finance.client.dto.CategoryCreateRequest;
 import com.afpr.pfm.finance.client.dto.CategoryResponse;
 import com.afpr.pfm.finance.client.dto.PagedCategoryResponse;
 import io.cucumber.spring.ScenarioScope;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @ScenarioScope
 public class CategoryWorld extends World {
 
-    private String categoryName;
+    private CategoryCreateRequest category;
     private UUID categoryId;
     private List<CategoryResponse> createdCategories = new ArrayList<>();
 

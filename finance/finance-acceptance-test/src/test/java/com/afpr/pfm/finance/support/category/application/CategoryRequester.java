@@ -20,12 +20,8 @@ public class CategoryRequester {
         this.categoryApi = categoryApi;
     }
 
-    public ResponseEntity<CategoryResponse> create(String name) {
+    public ResponseEntity<CategoryResponse> create(CategoryCreateRequest request) {
         try {
-            CategoryCreateRequest request = CategoryCreateRequest.builder()
-                    .name(name)
-                    .build();
-
             return categoryApi.createCategory(request);
         } catch (FeignException e) {
             return ResponseEntity.status(e.status()).build();

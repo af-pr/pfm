@@ -1,6 +1,7 @@
 package com.afpr.pfm.finance.step.given;
 
 import com.afpr.pfm.finance.step.worlds.CategoryWorld;
+import com.afpr.pfm.finance.support.category.application.CategoryMother;
 import com.afpr.pfm.finance.support.category.application.CategoryRequester;
 
 import io.cucumber.java.en.And;
@@ -18,13 +19,13 @@ public class GivenCategory {
 
     @Given("a valid category is declared")
     public void aValidCategoryIsDeclared() {
-        categoryWorld.setCategoryName(new Faker().commerce().department());
+        categoryWorld.setCategory(CategoryMother.newCategory());
     }
 
     @Given("a category is created")
     public void aCategoryIsCreated() {
         aValidCategoryIsDeclared();
-        var response = categoryRequester.create(categoryWorld.getCategoryName());
+        var response = categoryRequester.create(categoryWorld.getCategory());
         categoryWorld.setLastResponse(response);
         categoryWorld.setCategoryId(response.getBody().getId());
     }
@@ -38,8 +39,8 @@ public class GivenCategory {
     public void severalCategoriesAreCreated() {
         var faker = new Faker();
         var createdCategories = IntStream.range(0, faker.number().numberBetween(3, 6))
-                .mapToObj(i -> categoryRequester.create(faker.unique().fetchFromYaml("commerce.department")).getBody())
-                .toList();
+            .mapToObj(i -> categoryRequester.create(CategoryMother.newCategory()).getBody())
+            .toList();
         categoryWorld.setCreatedCategories(createdCategories);
     }
 }

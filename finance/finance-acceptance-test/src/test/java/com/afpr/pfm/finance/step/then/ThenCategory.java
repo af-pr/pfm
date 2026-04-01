@@ -20,7 +20,7 @@ public class ThenCategory {
 
         assertThat(response.getStatusCode().value()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getName()).isEqualTo(world.getCategoryName());
+        assertThat(response.getBody().getName()).isEqualTo(world.getCategory().getName());
     }
 
     @Then("the category is not created for duplicated name")
@@ -42,15 +42,15 @@ public class ThenCategory {
     @Then("the category list is retrieved successfully")
     public void theCategoryListIsRetrievedSuccessfully() {
         var response = world.getPagedCategoryResponse();
-        var created = world.getCreatedCategories();
+        var createdCategories = world.getCreatedCategories();
 
         assertThat(response.getStatusCode().value()).isEqualTo(HttpStatus.OK.value());
         assertThat(response.getBody()).isNotNull();
 
         var responseCategories = response.getBody().getContent();
-        assertThat(responseCategories).hasSize(created.size());
+        assertThat(responseCategories).hasSize(createdCategories.size());
         assertThat(responseCategories).allSatisfy(responseCategory ->
-                assertThat(created).anySatisfy(createdCategory -> {
+                assertThat(createdCategories).anySatisfy(createdCategory -> {
                     assertThat(responseCategory.getId()).isEqualTo(createdCategory.getId());
                     assertThat(responseCategory.getName()).isEqualTo(createdCategory.getName());
                 })
