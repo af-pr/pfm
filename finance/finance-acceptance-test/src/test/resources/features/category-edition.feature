@@ -1,7 +1,7 @@
 Feature: Category edition
 
   Scenario: category edition by admin
-    Given a valid category is declared
+    Given a category is created
     When admin requests a category edition
     Then the category is edited
 

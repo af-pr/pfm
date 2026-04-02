@@ -1,10 +1,10 @@
-package com.afpr.pfm.finance.support.category.application;
+package com.afpr.pfm.finance.support.category.domain;
+
+import java.util.UUID;
 
 import com.afpr.pfm.finance.category.domain.Category;
 
 import net.datafaker.Faker;
-
-import java.util.UUID;
 
 public class CategoryMother {
     private static final Faker FAKER = new Faker();
@@ -29,7 +29,9 @@ public class CategoryMother {
     }
 
     public static String generateName() {
-        String rawName = FAKER.unique().fetchFromYaml("commerce.department");
-        return rawName.replaceAll("[^a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ-]", "");
+        var rawName = FAKER.commerce().department();
+        var sanitizedName = rawName.replaceAll("[^a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ-]", "");
+        String randomSuffix = FAKER.regexify("[a-zA-Z0-9]{5}");
+        return sanitizedName.concat(randomSuffix);
     }
 }
