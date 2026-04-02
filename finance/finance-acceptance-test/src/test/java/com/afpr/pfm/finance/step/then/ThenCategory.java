@@ -56,4 +56,14 @@ public class ThenCategory {
                 })
         );
     }
+
+    @Then("the category is edited")
+    public void theCategoryIsEdited() {
+        var response = world.getCategoryResponse();
+
+        assertThat(response.getStatusCode().value()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getId()).isEqualTo(world.getCategoryId());
+        assertThat(response.getBody().getName()).isEqualTo(world.getCategory().getName());
+    }
 }

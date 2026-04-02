@@ -15,6 +15,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+    restart: unless-stopped
     volumes:
       - pfm-postgres-data:/var/lib/postgresql/data
     networks:

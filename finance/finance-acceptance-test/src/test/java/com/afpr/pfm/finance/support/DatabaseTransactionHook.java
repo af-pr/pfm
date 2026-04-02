@@ -14,7 +14,6 @@ public class DatabaseTransactionHook {
 
     @Before
     public void cleanupDatabase() {
-        // Get all tables from finance schema and truncate them
         List<String> tables = jdbcTemplate.queryForList(
             "SELECT tablename FROM pg_tables WHERE schemaname = 'finance' ORDER BY tablename",
             String.class
