@@ -40,3 +40,14 @@ logging:
   level:
     com.afpr.pfm: INFO
     org.hibernate.SQL: WARN
+    org.zalando.logbook: TRACE
+
+logbook:
+  format:
+    style: json
+  exclude:
+    - /actuator/**
+  obfuscate:
+    headers:
+      - Authorization
+      - Cookie

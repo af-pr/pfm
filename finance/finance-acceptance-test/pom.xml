@@ -134,7 +134,7 @@
                         <argument>--server.port=${app.port}</argument>
                         <argument>--spring.liquibase.enabled=true</argument>
                         <argument>--spring.jpa.hibernate.ddl-auto=validate</argument>
-                        <argument>--logging.file.name=${project.build.directory}/app.log</argument>
+                        <argument>--logging.file.name=${project.build.directory}/finance-app.log</argument>
                     </arguments>
                 </configuration>
                 <executions>
