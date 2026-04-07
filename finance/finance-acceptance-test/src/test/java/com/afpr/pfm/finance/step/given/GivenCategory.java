@@ -1,15 +1,15 @@
 package com.afpr.pfm.finance.step.given;
 
+import java.util.stream.IntStream;
+
 import com.afpr.pfm.finance.step.worlds.CategoryWorld;
-import com.afpr.pfm.finance.support.category.application.CategoryMother;
 import com.afpr.pfm.finance.support.category.application.CategoryRequester;
+import com.afpr.pfm.finance.support.category.domain.CategoryMother;
 
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import lombok.AllArgsConstructor;
 import net.datafaker.Faker;
-
-import java.util.stream.IntStream;
 
 @AllArgsConstructor
 public class GivenCategory {
@@ -19,7 +19,9 @@ public class GivenCategory {
 
     @Given("a valid category is declared")
     public void aValidCategoryIsDeclared() {
-        categoryWorld.setCategory(CategoryMother.newCategory());
+        var category = CategoryMother.newCategory();
+        categoryWorld.setCategory(category);
+        categoryWorld.setCategoryId(category.getId());
     }
 
     @Given("a category is created")

@@ -21,7 +21,7 @@ public class CategoryMother {
                 .build();
     }
 
-    private static String randomName() {
+    public static String randomName() {
         return FAKER.commerce().department();
     }
 }
