@@ -1,0 +1,61 @@
+name: Deploy PostgreSQL Infra
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (pre or pro)'
+        required: true
+        type: choice
+        options:
+          - pre
+          - pro
+
+jobs:
+  deploy-postgresql:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load infra config
+        shell: powershell
+        run: |
+          $env_file = "$env:PFMREPO\finance\resources\env_config\.env.${{ inputs.environment }}"
+          $technicalVars = @('ENVIRONMENT','DB_URL','DB_NAME','DB_PORT','APP_PORT','NETWORK_NAME')
+          Get-Content $env_file | ForEach-Object {
+            if ($_ -match '^([^#][^=]*)=(.*)$') {
+              $var = $matches[1]
+              $val = $matches[2]
+              Set-Item -Path "Env:$var" -Value $val
+              if ($technicalVars -contains $var) {
+                echo "$var=$val" >> $env:GITHUB_ENV
+              }
+            }
+          }
+          Set-Item -Path Env:COMPOSE_PROJECT_NAME -Value "pfm-finance-${{ inputs.environment }}"
+          Set-Item -Path Env:NETWORK_NAME -Value "pfm-finance-${{ inputs.environment }}-net"
+          echo "COMPOSE_PROJECT_NAME=pfm-finance-${{ inputs.environment }}" >> $env:GITHUB_ENV
+          echo "NETWORK_NAME=pfm-finance-${{ inputs.environment }}-net" >> $env:GITHUB_ENV
+
+      - name: Deploy PostgreSQL only
+        shell: powershell
+        run: |
+          docker-compose -p $env:COMPOSE_PROJECT_NAME -f finance/resources/docker-compose-infra.yaml up -d postgres
+
+      - name: Wait for PostgreSQL healthcheck
+        shell: powershell
+        run: |
+          $containerName = "pfm-finance-postgres-$env:ENVIRONMENT"
+          $maxAttempts = 30
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            $status = docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $containerName 2>$null
+            if ($status -eq 'healthy') {
+              Write-Host "PostgreSQL is healthy"
+              exit 0
+            }
+            Start-Sleep -Seconds 2
+          }
+          Write-Error "PostgreSQL did not become healthy in time"
+          docker logs $containerName
+          exit 1
