@@ -9,7 +9,8 @@ Feature: Category creation
 #  Scenario: category creation by regular user
 #    Given a valid category is declared
 #    When a regular user requests the category creation
-#    Then the category is not created for insufficient permissions
+ #   Then the category is not created
+ #   And the system returns an error for insufficient permissions
 
   Scenario: category duplicated
     Given a category is created
